@@ -62,8 +62,8 @@
           </ul>
           </el-aside>
           <el-container>
-            <el-header>
-              <div class="header-button">
+            <el-header height="80px">
+              <div class="header-button" >
                 <el-button type="primary" icon="Upload">
                   上传
                 </el-button>
@@ -85,7 +85,7 @@
                 <i  class="iconfont icon-shuaxin" style="margin-left: 18px"></i>
               </div>
               <div class="breadcrumb">
-                <el-breadcrumb separator="/">
+                <el-breadcrumb  separator="/">
                   <el-breadcrumb-item :to="{ path: '/' }">homepage</el-breadcrumb-item>
                   <el-breadcrumb-item>
                     <a href="/">promotion management</a>
@@ -129,11 +129,21 @@
         height: 100%;
         width: 100%;
         .header {
+            border-bottom: 1px solid;
             display: flex;
             justify-content: space-between;
+            box-shadow: 1px 1px 5px #888888;
+            align-items: center;
+            .left {
+              font-size: 18px;
+            }
+            .right {
+              font-size: 18px;
+            }
         }
         .buttom {
             .buttom-left {
+              box-shadow: 1px 1px 5px #888888;
                 ul {
                     li{
                         margin-top: 18px;
@@ -147,6 +157,7 @@
             }
             .buttom-right {
                 .buttom-right-left {
+                  border-right: 1px solid;
                     li {
                         display: flex;
                         justify-content: center;
@@ -158,7 +169,13 @@
                         }
                     }
                 }
-
+                .header-button {
+                  margin-top: 18px;
+                }
+                .breadcrumb {
+                  margin-top: 18px;
+                  margin-bottom: 18px;
+                }
             }
         }
     }
