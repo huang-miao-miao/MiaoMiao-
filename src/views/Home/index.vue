@@ -63,25 +63,37 @@
           </el-aside>
           <el-container>
             <el-header>
-              <el-button type="primary" icon="Upload">
-              上传
-            </el-button>
-            <el-button type="success" icon="DocumentAdd">
-              新建文件夹
-            </el-button>
-            <el-button type="info" icon="DeleteFilled">
-              批量删除
-            </el-button>
-            <el-button type="warning" icon="Rank">
-              批量移动
-            </el-button>
-            <el-input
-              v-model="input1"
-              style="width: 240px;margin-left: 18px;"
-              placeholder="请输入文件名搜索"
-              class="fileselect"
-            />
-            <i  class="iconfont icon-shuaxin" style="margin-left: 18px"></i>
+              <div class="header-button">
+                <el-button type="primary" icon="Upload">
+                  上传
+                </el-button>
+                <el-button type="success" icon="DocumentAdd">
+                  新建文件夹
+                </el-button>
+                <el-button type="info" icon="DeleteFilled">
+                  批量删除
+                </el-button>
+                <el-button type="warning" icon="Rank">
+                  批量移动
+                </el-button>
+                <el-input
+                  v-model="input1"
+                  style="width: 240px;margin-left: 18px;"
+                  placeholder="请输入文件名搜索"
+                  class="fileselect"
+                />
+                <i  class="iconfont icon-shuaxin" style="margin-left: 18px"></i>
+              </div>
+              <div class="breadcrumb">
+                <el-breadcrumb separator="/">
+                  <el-breadcrumb-item :to="{ path: '/' }">homepage</el-breadcrumb-item>
+                  <el-breadcrumb-item>
+                    <a href="/">promotion management</a>
+                  </el-breadcrumb-item>
+                  <el-breadcrumb-item>promotion list</el-breadcrumb-item>
+                  <el-breadcrumb-item>promotion detail</el-breadcrumb-item>
+                </el-breadcrumb>
+              </div>
             </el-header>
             <el-main>
             <el-table class="table" :data="tableData" style="width: 99%">
