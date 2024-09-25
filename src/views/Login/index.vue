@@ -25,6 +25,8 @@
 
 <script setup>
   import { ref } from 'vue'
+  import { logincheck } from '@/apis/user'
+  import { useRoute, useRouter } from 'vue-router'
   const ruleForm = ref({
     phone: '',
     password: ''
@@ -40,18 +42,27 @@
   })
   // 获取form表单引用
   const ruleFormRef = ref(null)
+
+  const router = useRouter()
+  const route = useRoute()
   // 当点击登录按钮时的函数
   const submit = () => {
     // 获取到真正的表单元素
-    ruleFormRef.value.validate((isValid, invalidFields) => {
+    ruleFormRef.value.validate(async(isValid, invalidFields) => {
       if (isValid) {
         // 表单所有元素验证通过，可以提交了
         console.log('验证通过')
+        const { phone, password } = ruleForm.value
+        const res = await logincheck({ phone, password });
+        if(res.success===true){
+          router.push('/index')
+        } 
       } else {
         console.log(invalidFields)
         console.log('验证不通过,不能提交,请检查')
       }
     })
+    
   }
 </script>
 
