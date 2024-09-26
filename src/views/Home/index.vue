@@ -98,9 +98,9 @@
             <el-main>
             <el-table class="table" :data="tableData" style="width: 99%">
                 <el-table-column type="selection" />
-                <el-table-column class="name" width="300px" property="name" label="文件名"/>
-                <el-table-column class="time" property="time" label="修改时间"/>
-                <el-table-column property="size" label="文件大小"/>
+                <el-table-column class="name" width="300px" property="fileName" label="文件名"/>
+                <el-table-column class="time" property="updatetime" label="修改时间"/>
+                <el-table-column property="fileSize" label="文件大小"/>
             </el-table>
           </el-main>
           </el-container>
@@ -111,13 +111,23 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue'
-  
-  const tableData = ref([{
-    name: "test",
-    time: "2016-05-04",
-    size: "1MB"
-  }])
+  import { onMounted, ref } from 'vue'
+  import { FileList } from '@/apis/file'
+  const tableData = ref([{}])
+  const test = ref({
+    userId: '1',
+    fileId: '1'
+  })
+  const getFileList = async () => {
+    const { userId, fileId } = test.value
+    const res = await FileList({ userId, fileId })
+    tableData.value = res.data
+    console.log(res)
+    console.log(tableData.value)
+  }
+  onMounted(()=>{
+    getFileList()
+  })
 </script>
 
 <style lang="scss" scoped>
