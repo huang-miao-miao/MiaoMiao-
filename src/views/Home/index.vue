@@ -64,9 +64,13 @@
           <el-container>
             <el-header height="80px">
               <div class="header-button" >
-                <el-button type="primary" icon="Upload">
-                  上传
-                </el-button>
+                <el-upload
+                  class="upload-demo"
+                  action="http://localhost:8080/file/upload"
+                  show-file-list=false
+                >
+                  <el-button class="upload-button" type="primary">文件上传</el-button>
+                </el-upload>
                 <el-button type="success" icon="DocumentAdd">
                   新建文件夹
                 </el-button>
@@ -181,6 +185,12 @@
                 }
                 .header-button {
                   margin-top: 18px;
+                  display: flex;
+                  align-items: center;
+                  .upload-demo {
+                    padding-top: 10px;
+                    padding-right: 18px;
+                  }
                 }
                 .breadcrumb {
                   margin-top: 18px;
