@@ -35,39 +35,42 @@
         <el-container class="buttom-right">
           <el-aside class="buttom-right-left" width="150px">
             <ul>
-            <li>
+            <li @click="getFileList">
               <i class="iconfont icon-all"></i>
-              <span>设置</span>
+              <span>全部</span>
             </li>
-            <li>
+            <li @click="getMovieFileList(1)">
               <i class="iconfont icon-shipin"></i>
               <span>视频</span>
             </li>
-            <li>
+            <li @click="getMovieFileList(2)">
               <i class="iconfont icon-yinpin"></i>
               <span>音频</span>
             </li>
-            <li>
+            <li @click="getMovieFileList(3)">
               <i class="iconfont icon-tupian"></i>
               <span>图片</span>
             </li>
-            <li>
+            <li @click="getMovieFileList(4)">
               <i class="iconfont icon-wenjian"></i>
               <span>文档</span>
             </li>
-            <li>
+            <li @click="getMovieFileList(5)">
               <i class="iconfont icon-qita"></i>
               <span>其他</span>
             </li>
           </ul>
           </el-aside>
           <el-container>
+            <!-- action="http://localhost:8080/file/upload" -->
             <el-header height="80px">
               <div class="header-button" >
                 <el-upload
                   class="upload-demo"
-                  action="http://localhost:8080/file/upload"
-                  show-file-list=false
+                  action="#"
+                  :on-change="change_file"
+                  :show-file-list= false
+                  :auto-upload= false
                 >
                   <el-button class="upload-button" type="primary">文件上传</el-button>
                 </el-upload>
@@ -86,7 +89,7 @@
                   placeholder="请输入文件名搜索"
                   class="fileselect"
                 />
-                <i  class="iconfont icon-shuaxin" style="margin-left: 18px"></i>
+                <i @click="getFileList" class="iconfont icon-shuaxin" style="margin-left: 18px;cursor: pointer;"></i>
               </div>
               <div class="breadcrumb">
                 <el-breadcrumb  separator="/">
@@ -115,16 +118,101 @@
 </template>
 
 <script setup>
+  import axios from 'axios'
+  import SparkMD5 from 'spark-md5';
   import { onMounted, ref } from 'vue'
-  import { FileList } from '@/apis/file'
-  const tableData = ref([{}])
+  import { FileList, MovieFileList, uploadFile, checkfile, uploadchuckfile, merge, CheckChunk } from '@/apis/file'
+  const tableData = ref([])
   const test = ref({
     userId: '1',
     fileId: '1'
   })
+  const form = ref({
+    file: ''
+  })
+  const pid = ref('1')
+  const chunksize = 10 * 1024 * 1024
+  const change_file = async (UploadFile, UploadFiles) => {
+    const fileMd5 = await getUploadFileMD5(UploadFile.raw);
+    const fileSize = UploadFile.size
+    const checkfiledata = new FormData()
+    checkfiledata.append('fileMd5', fileMd5)
+    checkfiledata.append('FileSize', fileSize)
+    checkfiledata.append('Filename', UploadFile.name)
+    checkfiledata.append('pid',1)
+    const chekFile = await checkfile(checkfiledata);
+    if(chekFile.data==="文件已上传"){
+      return false
+    }
+    // 可以设置大于多少兆可以分片上传，否则走普通上传
+    if (fileSize <= chunksize) {
+        const res = await uploadFile(UploadFile,fileMd5)
+        console.log(res)
+        console.log("上传的文件大于10m才能分片上传")
+    }else{
+      const chunkCount = Math.ceil(fileSize / chunksize)
+      console.log("文件大小：", (UploadFile.size / 1024 / 1024) + "Mb", "分片数：", chunkCount)
+      console.log("向后端请求本次分片上传初始化")
+      // console.log(res)
+      for (var i = 0; i < chunkCount; i++) {
+          const checkchunkdata = new FormData()
+          checkchunkdata.append("fileMd5",fileMd5)
+          checkchunkdata.append("chunk",i)
+          const checkchunk = await CheckChunk(checkchunkdata);
+          if(checkchunk==="分块已存在"){
+            continue
+          }
+          //分片开始位置
+          let start = i * chunksize
+          //分片结束位置
+          let end = Math.min(fileSize, start + chunksize)
+          //取文件指定范围内的byte，从而得到分片数据
+          console.log(UploadFile, '0000')
+          let _chunkFile = UploadFile.raw.slice(start, end)
+          console.log(_chunkFile)
+          console.log("开始上传第" + i + "个分片")
+          let formdata = new FormData()
+          formdata.append('fileMd5', fileMd5)
+          formdata.append('chunkNumber', i)
+          formdata.append('file', _chunkFile)
+          // 通过await实现顺序上传
+          const res = await uploadchuckfile(formdata)
+          console.log(res)
+      }
+      const formdata = new FormData()
+      formdata.append('fileMd5', fileMd5)
+      formdata.append('chunkCount', chunkCount)
+      formdata.append('filename', UploadFile.name)
+      const res = await merge(formdata)
+      console.log(res)
+    }
+  }
+  const getUploadFileMD5 = (file) => {
+      return new Promise((resolve, reject) => {
+        const fileReader = new FileReader();
+
+        fileReader.onload = () => {
+          const arrayBuffer = fileReader.result;
+          const md5Hash = SparkMD5.ArrayBuffer.hash(arrayBuffer);
+          resolve(md5Hash);
+        };
+
+        fileReader.onerror = (error) => {
+          reject(error);
+        };
+
+        fileReader.readAsArrayBuffer(file);
+      });
+  }
   const getFileList = async () => {
     const { userId, fileId } = test.value
     const res = await FileList({ userId, fileId })
+    tableData.value = res.data
+  }
+  const getMovieFileList = async (filecategory) => {
+    test.value.fileCategory = filecategory
+    const { userId, fileId ,fileCategory } = test.value
+    const res = await MovieFileList({ userId, fileId, fileCategory })
     tableData.value = res.data
     console.log(res)
     console.log(tableData.value)
@@ -178,6 +266,7 @@
                         align-items: center;
                         margin-top: 18px;
                         height: 18px;
+                        cursor: pointer;
                         i{
                             margin-right: 18px;
                         }
@@ -188,7 +277,6 @@
                   display: flex;
                   align-items: center;
                   .upload-demo {
-                    padding-top: 10px;
                     padding-right: 18px;
                   }
                 }
