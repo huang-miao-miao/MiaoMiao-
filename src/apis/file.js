@@ -1,5 +1,6 @@
 import instance from '@/utils/http'
 import { ref } from 'vue'
+import qs from 'qs'
 export const FileList = ({ userId, fileId }) => {
     return instance({
         url: '/file/FileList',
@@ -68,5 +69,15 @@ export const CheckChunk = (formData) => {
         url: 'file/checkchunk',
         method: 'post',
         data: formData
+    })
+}
+export const DeleteFile = (deletefile) => {
+    return instance({
+        url: 'file/deletefile',
+        method: 'delete',
+        params: {deletefile},
+        paramsSerializer: function (params) {
+            return qs.stringify(params, { arrayFormat: 'repeat' })
+        }
     })
 }

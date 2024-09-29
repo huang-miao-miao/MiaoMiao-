@@ -7,7 +7,7 @@
             <span>MiaoMiao网盘</span>
         </div>
         <div class="right">
-            <i class="iconfont icon-paixu"></i>
+            <i style="cursor:pointer;margin-right: 18px;" @click="changeshowtransform" class="iconfont icon-paixu"></i>
             <span>admin</span>
         </div>
       </el-header>
@@ -61,7 +61,7 @@
             </li>
           </ul>
           </el-aside>
-          <el-container>
+          <el-container class="buttom-right-right">
             <!-- action="http://localhost:8080/file/upload" -->
             <el-header height="80px">
               <div class="header-button" >
@@ -69,15 +69,17 @@
                   class="upload-demo"
                   action="#"
                   :on-change="change_file"
+                  :on-progress="uploadVideoProcess"
                   :show-file-list= false
                   :auto-upload= false
+                  multiple
                 >
                   <el-button class="upload-button" type="primary">文件上传</el-button>
                 </el-upload>
                 <el-button type="success" icon="DocumentAdd">
                   新建文件夹
                 </el-button>
-                <el-button type="info" icon="DeleteFilled">
+                <el-button @click="deletefile" type="info" icon="DeleteFilled">
                   批量删除
                 </el-button>
                 <el-button type="warning" icon="Rank">
@@ -93,22 +95,21 @@
               </div>
               <div class="breadcrumb">
                 <el-breadcrumb  separator="/">
-                  <el-breadcrumb-item :to="{ path: '/' }">homepage</el-breadcrumb-item>
-                  <el-breadcrumb-item>
-                    <a href="/">promotion management</a>
-                  </el-breadcrumb-item>
-                  <el-breadcrumb-item>promotion list</el-breadcrumb-item>
-                  <el-breadcrumb-item>promotion detail</el-breadcrumb-item>
+                  <el-breadcrumb-item v-for="(item,index) in breadcrumblist" style="cursor:pointer;" @click="breadcrumbclick(index)" :key="item.id">{{item.filename}}</el-breadcrumb-item>
                 </el-breadcrumb>
               </div>
             </el-header>
-            <el-main>
-            <el-table class="table" :data="tableData" style="width: 99%">
+            <el-main class="table-main">
+            <el-table class="table" @select="selectL" :data="tableData" style="width: 99%">
                 <el-table-column type="selection" />
                 <el-table-column class="name" width="300px" property="fileName" label="文件名"/>
                 <el-table-column class="time" property="updatetime" label="修改时间"/>
                 <el-table-column property="fileSize" label="文件大小"/>
             </el-table>
+            <div class="transform">
+              <div class="title">上传任务</div>
+              <el-progress :percentage="loadProgress" />
+            </div>
           </el-main>
           </el-container>
         </el-container>
@@ -121,7 +122,8 @@
   import axios from 'axios'
   import SparkMD5 from 'spark-md5';
   import { onMounted, ref } from 'vue'
-  import { FileList, MovieFileList, uploadFile, checkfile, uploadchuckfile, merge, CheckChunk } from '@/apis/file'
+  import { FileList, MovieFileList, uploadFile, checkfile, uploadchuckfile, merge, CheckChunk, DeleteFile } from '@/apis/file'
+  import { parse } from 'vue/compiler-sfc';
   const tableData = ref([])
   const test = ref({
     userId: '1',
@@ -131,7 +133,45 @@
     file: ''
   })
   const pid = ref('1')
+  const deletelist = ref([])
+  const showtransform = ref(false)
+  var loadProgress = ref(0)
+  const breadcrumblist = ref([{'fileid':'1','filename':'主页'},{'fileid':'2','filename':'空文件夹'}])
   const chunksize = 10 * 1024 * 1024
+  const breadcrumbclick = async (index) => {
+    breadcrumblist.value = breadcrumblist.value.slice(0,index+1)
+    const {userId,fileId} = test.value;
+    const res = await getFileList({userId,fileId})
+    console.log(res)
+  }
+  const deletefile = async () => {
+    if(deletelist.value.length===0){
+      console.log("没选择要删除的文件")
+      return 
+    }
+    const res = await DeleteFile(deletelist.value)
+    
+  }
+  const selectL = (selection, row) => {
+    console.log(row)
+    console.log(deletelist.value)
+    if(!deletelist.value.includes(row.fileId)){
+      deletelist.value.push(row.fileId)
+      return
+    }
+    // let index = deletelist.value.indexOf(row.fileId);
+    // if (index !== -1) {
+    //   deletelist.value = deletelist.value.splice(index, 1);
+    // }
+    deletelist.value = deletelist.value.filter(fileId1=>fileId1!==row.fileId)
+    
+  }
+  const changeshowtransform = () => {
+    showtransform.value = !showtransform.value
+  }
+  const uploadVideoProcess = (event, UploadFile, UploadFiles) => {
+    loadProgress.value = parseInt(event.percent)
+  }
   const change_file = async (UploadFile, UploadFiles) => {
     const fileMd5 = await getUploadFileMD5(UploadFile.raw);
     const fileSize = UploadFile.size
@@ -139,7 +179,7 @@
     checkfiledata.append('fileMd5', fileMd5)
     checkfiledata.append('FileSize', fileSize)
     checkfiledata.append('Filename', UploadFile.name)
-    checkfiledata.append('pid',1)
+    checkfiledata.append('pid',"1")
     const chekFile = await checkfile(checkfiledata);
     if(chekFile.data==="文件已上传"){
       return false
@@ -183,6 +223,7 @@
       formdata.append('fileMd5', fileMd5)
       formdata.append('chunkCount', chunkCount)
       formdata.append('filename', UploadFile.name)
+      formdata.append('pid',"1")
       const res = await merge(formdata)
       console.log(res)
     }
@@ -284,6 +325,25 @@
                   margin-top: 18px;
                   margin-bottom: 18px;
                 }
+            }
+            .table-main {
+              position: relative;
+                overflow: hidden;
+                .transform{
+                  position: absolute;
+                  bottom: 0;
+                  right: 0;
+                  width: 500px;
+                  height: 500px;
+                  // background-color: skyblue;
+                  border: 1px solid;
+                  box-shadow: 1px 1px 5px #888888;
+                  .title{
+                    height: 30px;
+                    line-height: 30px;
+                    padding-left: 10px;
+                  }
+                } 
             }
         }
     }
