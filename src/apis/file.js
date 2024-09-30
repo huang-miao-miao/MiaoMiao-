@@ -24,7 +24,7 @@ export const MovieFileList = ({ userId, fileId, fileCategory }) => {
 }
 export const uploadFile = (file,pid,fileMd5) => {
     const formData = new FormData()
-    formData.append('file', file.raw)
+    formData.append('file', file)
     formData.append('pid',pid)
     formData.append('fileMd5',fileMd5)
     return instance({
