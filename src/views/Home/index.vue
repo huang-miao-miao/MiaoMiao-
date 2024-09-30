@@ -73,7 +73,7 @@
                   action="#"
                   :http-request = "handleRequest"
                   :show-file-list= false
-                  :on-change= "uploadVideoProcess"
+                  :on-progress= "uploadVideoProcess"
                   multiple
                 >
                   <el-button class="upload-button" type="primary">文件上传</el-button>
@@ -213,7 +213,6 @@
   }
   //选择表格文件
   const selectL = (selection, row) => {
-    console.log(Array.isArray(deletelist.value))
     if(!deletelist.value.includes(row.fileId)){
       deletelist.value.push(row.fileId)
       return
@@ -230,14 +229,17 @@
   }
   const uploadVideoProcess = (event, UploadFile, UploadFiles) => {
     console.log(event)
+    console.log(event.percent)
     if (event.status === 'ready') {
-      const interval = setInterval(() => {
-        if (loadProgress.value >= 100) {
-          clearInterval(interval)
-          return
-        }
-        loadProgress.value += 1 //进度条进度
-      }, 80)
+      loadProgress.value = parseInt(event.percent)
+      // loadProgress.value.push({'uid':event.raw.uid})
+      // const interval = setInterval(() => {
+      //   if (loadProgress.value >= 100) {
+      //     clearInterval(interval)
+      //     return
+      //   }
+      //   loadProgress.value += 1 //进度条进度
+      // }, 80)
     }
   }
   const handleRequest = async (options) => {
@@ -260,7 +262,23 @@
     }
     // 可以设置大于多少兆可以分片上传，否则走普通上传
     if (fileSize <= chunksize) {
-        await uploadFile(UploadFile,test.value.fileId,fileMd5)
+      console.log('111')
+        const formData = new FormData()
+        formData.append('file', UploadFile)
+        formData.append('pid',test.value.fileId)
+        formData.append('fileMd5',fileMd5)
+      await axios.post('http://localhost:8080/file/upload',formData,{
+           headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          onUploadProgress: (ProgressEvent) => {
+            console.log('计时中')
+            loadProgress.value = Math.round((ProgressEvent.loaded/ProgressEvent.total)*100)
+          }
+        }).then(response => {  
+          console.log('File uploaded successfully');  
+        })
+        // await uploadFile(UploadFile,test.value.fileId,fileMd5)
         getFileList()
     }else{
       //大于10M进行分片上传
@@ -319,7 +337,23 @@
     }
     // 可以设置大于多少兆可以分片上传，否则走普通上传
     if (fileSize <= chunksize) {
-        await uploadFile(UploadFile,test.value.fileId,fileMd5)
+        console.log('111')
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('pid',pid)
+        formData.append('fileMd5',fileMd5)
+        await axios.post('/file/upload',formData,{
+           headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          onUploadProgress: (ProgressEvent) => {
+            console.log('计时中')
+            loadProgress.value = Math.round((ProgressEvent.loaded/ProgressEvent.total)*100)
+          }
+        }).then(response => {  
+          console.log('File uploaded successfully');  
+        })
+        // await uploadFile(UploadFile,test.value.fileId,fileMd5)
         console.log('上传成功')
         getFileList()
     }else{
