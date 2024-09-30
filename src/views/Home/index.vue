@@ -207,17 +207,22 @@
       console.log("没选择要删除的文件")
       return 
     }
-    const res = await DeleteFile(deletelist.value)
+    await DeleteFile(deletelist.value)
+    deletelist.value = ref([])
     getFileList()
-    console.log(res)
   }
+  //选择表格文件
   const selectL = (selection, row) => {
+    console.log(Array.isArray(deletelist.value))
     if(!deletelist.value.includes(row.fileId)){
       deletelist.value.push(row.fileId)
       return
     }
-    deletelist.value = deletelist.value.filter(fileId1=>fileId1!==row.fileId)
-    
+    const index = deletelist.value.indexOf(row.fileId)
+    if (index !== -1) {
+      deletelist.value.splice(index, 1);
+    }
+    // deletelist.value = deletelist.value.filter(fileId1=>fileId1!==row.fileId)
   }
   //进度条
   const changeshowtransform = () => {
@@ -225,15 +230,15 @@
   }
   const uploadVideoProcess = (event, UploadFile, UploadFiles) => {
     console.log(event)
-    // if (event.status === 'ready') {
-    //   const interval = setInterval(() => {
-    //     if (loadProgress.value >= 100) {
-    //       clearInterval(interval)
-    //       return
-    //     }
-    //     loadProgress.value += 1 //进度条进度
-    //   }, 80)
-    // }
+    if (event.status === 'ready') {
+      const interval = setInterval(() => {
+        if (loadProgress.value >= 100) {
+          clearInterval(interval)
+          return
+        }
+        loadProgress.value += 1 //进度条进度
+      }, 80)
+    }
   }
   const handleRequest = async (options) => {
     //计算文件的md5值
@@ -256,6 +261,7 @@
     // 可以设置大于多少兆可以分片上传，否则走普通上传
     if (fileSize <= chunksize) {
         await uploadFile(UploadFile,test.value.fileId,fileMd5)
+        getFileList()
     }else{
       //大于10M进行分片上传
       //计算分片数量
@@ -314,6 +320,8 @@
     // 可以设置大于多少兆可以分片上传，否则走普通上传
     if (fileSize <= chunksize) {
         await uploadFile(UploadFile,test.value.fileId,fileMd5)
+        console.log('上传成功')
+        getFileList()
     }else{
       //大于10M进行分片上传
       //计算分片数量
