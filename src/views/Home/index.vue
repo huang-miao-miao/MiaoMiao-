@@ -100,9 +100,24 @@
               </div>
             </el-header>
             <el-main class="table-main">
-            <el-table class="table" @select="selectL" :data="tableData" style="width: 99%">
+            <el-table @cell-mouse-leave="mouseLeave" @cell-mouse-enter="mouseEnter" class="table" @select="selectL" :data="tableData" style="width: 99%">
                 <el-table-column type="selection" />
-                <el-table-column class="name" width="300px" property="fileName" label="文件名"/>
+                <el-table-column class="name" width="500px" label="文件名">
+                  <template #default="scope">
+                    <div class="items">
+                      <div class="item-fileName">
+                        <span>{{scope.row.fileName}}</span>
+                      </div>
+                      <div v-show="showClickIcon===true&&scope.row.fileId==rowid" class="item-button">
+                          <span>分享</span>
+                          <span>下载</span>
+                          <span>删除</span>
+                          <span>重命名</span>
+                          <span>移动</span>
+                      </div>
+                    </div>
+                  </template>
+                </el-table-column>
                 <el-table-column class="time" property="updatetime" label="修改时间"/>
                 <el-table-column property="fileSize" label="文件大小"/>
             </el-table>
@@ -129,6 +144,8 @@
     userId: '1',
     fileId: '1'
   })
+  const showClickIcon = ref(false)
+  const rowid = ref('')
   const form = ref({
     file: ''
   })
@@ -138,6 +155,13 @@
   var loadProgress = ref(0)
   const breadcrumblist = ref([{'fileid':'1','filename':'主页'},{'fileid':'2','filename':'空文件夹'}])
   const chunksize = 10 * 1024 * 1024
+  const mouseEnter = (row,column,cell,event) => {
+    showClickIcon.value=true
+	  rowid.value=row.fileId
+  }
+  const mouseLeave = (row) => {
+    showClickIcon.value = false
+  }
   const breadcrumbclick = async (index) => {
     breadcrumblist.value = breadcrumblist.value.slice(0,index+1)
     const {userId,fileId} = test.value;
@@ -150,19 +174,13 @@
       return 
     }
     const res = await DeleteFile(deletelist.value)
-    
+    console.log(res)
   }
   const selectL = (selection, row) => {
-    console.log(row)
-    console.log(deletelist.value)
     if(!deletelist.value.includes(row.fileId)){
       deletelist.value.push(row.fileId)
       return
     }
-    // let index = deletelist.value.indexOf(row.fileId);
-    // if (index !== -1) {
-    //   deletelist.value = deletelist.value.splice(index, 1);
-    // }
     deletelist.value = deletelist.value.filter(fileId1=>fileId1!==row.fileId)
     
   }
@@ -329,6 +347,15 @@
             .table-main {
               position: relative;
                 overflow: hidden;
+                .table{
+                  .items{
+                    display: flex;
+                    justify-content: space-between;
+                    span{
+                      padding-right: 2px;
+                    }
+                  }
+                }
                 .transform{
                   position: absolute;
                   bottom: 0;
