@@ -22,8 +22,7 @@ export const MovieFileList = ({ userId, fileId, fileCategory }) => {
         }
     })
 }
-export const uploadFile = (file,fileMd5) => {
-    const pid = '1'
+export const uploadFile = (file,pid,fileMd5) => {
     const formData = new FormData()
     formData.append('file', file.raw)
     formData.append('pid',pid)
@@ -37,6 +36,7 @@ export const uploadFile = (file,fileMd5) => {
         data: formData
     })
 }
+//检查文件是否存在
 export const checkfile = (formData) => {
     return instance({
         url: 'file/checkfile',
@@ -44,6 +44,7 @@ export const checkfile = (formData) => {
         data: formData 
     })
 }
+//上传分块文件
 export const uploadchuckfile = (formData) => {
     return instance({
         url: 'file/uploadchunk',
@@ -54,6 +55,7 @@ export const uploadchuckfile = (formData) => {
         data: formData
     })
 }
+//合并分块
 export const merge = (formData) => {
     return instance({
         url: 'file/merge',
@@ -64,6 +66,7 @@ export const merge = (formData) => {
         data: formData
     })
 }
+//检查分块文件是否存在
 export const CheckChunk = (formData) => {
     return instance({
         url: 'file/checkchunk',
@@ -78,6 +81,17 @@ export const DeleteFile = (deletefile) => {
         params: {deletefile},
         paramsSerializer: function (params) {
             return qs.stringify(params, { arrayFormat: 'repeat' })
+        }
+    })
+}
+export const createFolder = ({userId,fileId,fileName}) => {
+    return instance({
+        url: '/file/createfolder',
+        method: 'post',
+        data: {
+            userId,
+            fileId,
+            fileName
         }
     })
 }

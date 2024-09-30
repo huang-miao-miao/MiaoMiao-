@@ -76,7 +76,7 @@
                 >
                   <el-button class="upload-button" type="primary">文件上传</el-button>
                 </el-upload>
-                <el-button type="success" icon="DocumentAdd">
+                <el-button @click="changecreateFolder" type="success" icon="DocumentAdd">
                   新建文件夹
                 </el-button>
                 <el-button @click="deletefile" type="info" icon="DeleteFilled">
@@ -95,7 +95,7 @@
               </div>
               <div class="breadcrumb">
                 <el-breadcrumb  separator="/">
-                  <el-breadcrumb-item v-for="(item,index) in breadcrumblist" style="cursor:pointer;" @click="breadcrumbclick(index)" :key="item.id">{{item.filename}}</el-breadcrumb-item>
+                  <el-breadcrumb-item v-for="(item,index) in breadcrumblist" style="cursor:pointer;" @click="breadcrumbclick(item,index)" :key="item.id">{{item.filename}}</el-breadcrumb-item>
                 </el-breadcrumb>
               </div>
             </el-header>
@@ -104,8 +104,13 @@
                 <el-table-column type="selection" />
                 <el-table-column class="name" width="500px" label="文件名">
                   <template #default="scope">
-                    <div class="items">
-                      <div class="item-fileName">
+                    <div v-if="scope.row.fileId==='1'" class="addFolder">
+                      <el-input v-model="foldername" style="width: 240px;margin-right:15px;" />
+                      <el-button @click="ensurecreate" type="success" size="small" :icon="Check" circle />
+                      <el-button type="danger" size="small" :icon="Close" circle />
+                    </div>
+                    <div v-else class="items">
+                      <div class="item-fileName" style="cursor:pointer;" @click="selectitem(scope.row)">
                         <span>{{scope.row.fileName}}</span>
                       </div>
                       <div v-show="showClickIcon===true&&scope.row.fileId==rowid" class="item-button">
@@ -121,9 +126,9 @@
                 <el-table-column class="time" property="updatetime" label="修改时间"/>
                 <el-table-column property="fileSize" label="文件大小"/>
             </el-table>
-            <div class="transform">
+            <div v-if="showtransform" class="transform">
               <div class="title">上传任务</div>
-              <el-progress :percentage="loadProgress" />
+              <el-progress v-for="item in loadProgress" :key="item.id" :percentage="item" />
             </div>
           </el-main>
           </el-container>
@@ -137,13 +142,15 @@
   import axios from 'axios'
   import SparkMD5 from 'spark-md5';
   import { onMounted, ref } from 'vue'
-  import { FileList, MovieFileList, uploadFile, checkfile, uploadchuckfile, merge, CheckChunk, DeleteFile } from '@/apis/file'
+  import {Check,Close} from '@element-plus/icons-vue'
+  import { FileList, MovieFileList, uploadFile, checkfile, uploadchuckfile, merge, CheckChunk, DeleteFile, createFolder } from '@/apis/file'
   import { parse } from 'vue/compiler-sfc';
   const tableData = ref([])
   const test = ref({
     userId: '1',
     fileId: '1'
   })
+  const foldername = ref('')
   const showClickIcon = ref(false)
   const rowid = ref('')
   const form = ref({
@@ -152,9 +159,33 @@
   const pid = ref('1')
   const deletelist = ref([])
   const showtransform = ref(false)
-  var loadProgress = ref(0)
-  const breadcrumblist = ref([{'fileid':'1','filename':'主页'},{'fileid':'2','filename':'空文件夹'}])
+  var loadProgress = ref([])
+  const breadcrumblist = ref([{'fileid':'1','filename':'主页'}])
   const chunksize = 10 * 1024 * 1024
+  //点击文件名称
+  const selectitem = (row) => {
+    if(row.folderType===0){
+      breadcrumblist.value.push({'fileid':row.fileId,'filename':row.fileName})
+      test.value.fileId = row.fileId;
+      getFileList()
+    }
+  }
+  //创建空文件夹
+  const ensurecreate = async () => {
+    if(foldername.value===''){
+      console.log('请输入文件夹名字')
+      return
+    }
+    const ff = test.value
+    ff.fileName=foldername.value
+    const res = await createFolder(ff)
+    tableData.value.shift
+    foldername.value=''
+    getFileList()
+  }
+  const changecreateFolder = () => {
+    tableData.value.unshift({'fileId':'1'})
+  }
   const mouseEnter = (row,column,cell,event) => {
     showClickIcon.value=true
 	  rowid.value=row.fileId
@@ -162,18 +193,20 @@
   const mouseLeave = (row) => {
     showClickIcon.value = false
   }
-  const breadcrumbclick = async (index) => {
+  //点击面包屑
+  const breadcrumbclick = async (item,index) => {
     breadcrumblist.value = breadcrumblist.value.slice(0,index+1)
-    const {userId,fileId} = test.value;
-    const res = await getFileList({userId,fileId})
-    console.log(res)
+    test.value.fileId = item.fileid
+    await getFileList()
   }
+  //删除文件
   const deletefile = async () => {
     if(deletelist.value.length===0){
       console.log("没选择要删除的文件")
       return 
     }
     const res = await DeleteFile(deletelist.value)
+    getFileList()
     console.log(res)
   }
   const selectL = (selection, row) => {
@@ -184,35 +217,40 @@
     deletelist.value = deletelist.value.filter(fileId1=>fileId1!==row.fileId)
     
   }
+  //进度条
   const changeshowtransform = () => {
     showtransform.value = !showtransform.value
   }
   const uploadVideoProcess = (event, UploadFile, UploadFiles) => {
     loadProgress.value = parseInt(event.percent)
   }
+  //上传文件
   const change_file = async (UploadFile, UploadFiles) => {
+    //计算文件的md5值
     const fileMd5 = await getUploadFileMD5(UploadFile.raw);
+    //计算文件大小
     const fileSize = UploadFile.size
+    //检查文件是否存在
     const checkfiledata = new FormData()
     checkfiledata.append('fileMd5', fileMd5)
     checkfiledata.append('FileSize', fileSize)
     checkfiledata.append('Filename', UploadFile.name)
-    checkfiledata.append('pid',"1")
+    checkfiledata.append('pid',test.value.fileId)
+    checkfiledata.append('userId',test.value.userId)
     const chekFile = await checkfile(checkfiledata);
+    //文件已上传，返回，实现秒传
     if(chekFile.data==="文件已上传"){
       return false
     }
     // 可以设置大于多少兆可以分片上传，否则走普通上传
     if (fileSize <= chunksize) {
-        const res = await uploadFile(UploadFile,fileMd5)
-        console.log(res)
-        console.log("上传的文件大于10m才能分片上传")
+        await uploadFile(UploadFile,test.value.fileId,fileMd5)
     }else{
+      //大于10M进行分片上传
+      //计算分片数量
       const chunkCount = Math.ceil(fileSize / chunksize)
-      console.log("文件大小：", (UploadFile.size / 1024 / 1024) + "Mb", "分片数：", chunkCount)
-      console.log("向后端请求本次分片上传初始化")
-      // console.log(res)
       for (var i = 0; i < chunkCount; i++) {
+          //检查每一片分片是否已上传，若已上传则不在上传，实现断点传续
           const checkchunkdata = new FormData()
           checkchunkdata.append("fileMd5",fileMd5)
           checkchunkdata.append("chunk",i)
@@ -225,27 +263,26 @@
           //分片结束位置
           let end = Math.min(fileSize, start + chunksize)
           //取文件指定范围内的byte，从而得到分片数据
-          console.log(UploadFile, '0000')
           let _chunkFile = UploadFile.raw.slice(start, end)
-          console.log(_chunkFile)
-          console.log("开始上传第" + i + "个分片")
           let formdata = new FormData()
           formdata.append('fileMd5', fileMd5)
           formdata.append('chunkNumber', i)
           formdata.append('file', _chunkFile)
           // 通过await实现顺序上传
-          const res = await uploadchuckfile(formdata)
-          console.log(res)
+          await uploadchuckfile(formdata)
       }
+      //分块上传完毕，合并分块
       const formdata = new FormData()
       formdata.append('fileMd5', fileMd5)
       formdata.append('chunkCount', chunkCount)
       formdata.append('filename', UploadFile.name)
-      formdata.append('pid',"1")
-      const res = await merge(formdata)
-      console.log(res)
+      formdata.append('pid',test.value.fileId)
+      await merge(formdata)
+      //上传完成，重新加载文件列表
+      getFileList()
     }
   }
+  //获取文件md5值
   const getUploadFileMD5 = (file) => {
       return new Promise((resolve, reject) => {
         const fileReader = new FileReader();
@@ -263,6 +300,7 @@
         fileReader.readAsArrayBuffer(file);
       });
   }
+  //获取文件列表
   const getFileList = async () => {
     const { userId, fileId } = test.value
     const res = await FileList({ userId, fileId })
@@ -273,8 +311,6 @@
     const { userId, fileId ,fileCategory } = test.value
     const res = await MovieFileList({ userId, fileId, fileCategory })
     tableData.value = res.data
-    console.log(res)
-    console.log(tableData.value)
   }
   onMounted(()=>{
     getFileList()
