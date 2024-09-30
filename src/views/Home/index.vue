@@ -276,6 +276,7 @@
             loadProgress.value = Math.round((ProgressEvent.loaded/ProgressEvent.total)*100)
           }
         }).then(response => {  
+          // loadProgress.value = 0
           console.log('File uploaded successfully');  
         })
         // await uploadFile(UploadFile,test.value.fileId,fileMd5)
@@ -305,6 +306,7 @@
           formdata.append('file', _chunkFile)
           // 通过await实现顺序上传
           await uploadchuckfile(formdata)
+          loadProgress.value = Math.floor(((i+1)/chunkCount)*100)
       }
       //分块上传完毕，合并分块
       const formdata = new FormData()
