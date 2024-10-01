@@ -27,6 +27,7 @@
   import { ref } from 'vue'
   import { logincheck } from '@/apis/user'
   import { useRoute, useRouter } from 'vue-router'
+  import { useUserStore } from '@/stores/user'
   const ruleForm = ref({
     phone: '',
     password: ''
@@ -43,6 +44,7 @@
   // 获取form表单引用
   const ruleFormRef = ref(null)
 
+  const userstore = useUserStore()
   const router = useRouter()
   const route = useRoute()
   // 当点击登录按钮时的函数
@@ -54,7 +56,9 @@
         console.log('验证通过')
         const { phone, password } = ruleForm.value
         const res = await logincheck({ phone, password });
+        console.log(res.data)
         if(res.success===true){
+          userstore.setuserid(res.data)
           router.push('/index')
         } 
       } else {

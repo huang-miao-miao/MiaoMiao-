@@ -1,9 +1,13 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 
-export const useCounterStore = defineStore('file', () => {
-  const fileid = ref('')
+export const useFileStore = defineStore('file', () => {
+  const fileid = ref('1')
+  const setfileid = (id) => {
+    fileid.value = id
+  }
   return { 
-    fileid
+    fileid,
+    setfileid
   }
 })
