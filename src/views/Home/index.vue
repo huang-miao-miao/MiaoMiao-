@@ -53,11 +53,12 @@
                 <el-table-column property="fileSize" label="文件大小"/>
             </el-table>
             <div v-if="showtransform" class="transform">
-              <div class="title">上传任务</div>
+              <Progress />
+              <!-- <div class="title">上传任务</div>
               <div v-for="item in loadprogress" :key="item.id" class="itemprogress">
                 <div class="itemprogresstitle">{{ item.filename }}</div>
                 <el-progress :percentage= "item.progress" />
-              </div>
+              </div> -->
             </div>
           </el-main>
           </el-container>
@@ -74,6 +75,7 @@
   import LeftAside from './components/leftaside.vue'
   import RightAside from './components/rightaside.vue'
   import TableHeader from './components/tableheader.vue'
+  import Progress from './components/progress.vue'
   import { onMounted, ref } from 'vue'
   import { storeToRefs } from 'pinia'
   import {Check,Close} from '@element-plus/icons-vue'
@@ -81,14 +83,14 @@
   import { parse } from 'vue/compiler-sfc';
   import { useUserStore } from '@/stores/user';
   import { useFileStore } from '@/stores/file';
-  import { useProgressStore } from '@/stores/loadprogress'
+  // import { useProgressStore } from '@/stores/loadprogress'
   const tableData = ref([])
   const userStore = useUserStore()
   const fileStore = useFileStore()
   const { userid } = storeToRefs(userStore)
   const { fileid } = storeToRefs(fileStore)
-  const ProgressStore = useProgressStore()
-  const {loadprogress} = storeToRefs(ProgressStore)
+  // const ProgressStore = useProgressStore()
+  // const {loadprogress} = storeToRefs(ProgressStore)
   const test = ref({
     userId: userid,
     fileId: fileid
