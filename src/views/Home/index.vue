@@ -2,35 +2,11 @@
   <div class="home-index">
     <el-container class="container-father">
       <el-header class="header">
-        <div class="left">
-            <i class="iconfont icon-wangpan"></i>
-            <span>MiaoMiao网盘</span>
-        </div>
-        <div class="right">
-            <i style="cursor:pointer;margin-right: 18px;" @click="changeshowtransform" class="iconfont icon-paixu"></i>
-            <span>admin</span>
-        </div>
+        <Header @change-progress= "changeshowtransform" />
       </el-header>
       <el-container class="buttom">
         <el-aside width="100px" class="buttom-left">
-            <ul>
-            <li>
-              <i class="iconfont icon-shouye"></i>
-              <span>首页</span>
-            </li>
-            <li>
-              <i class="iconfont icon-JC_054"></i>
-              <span>分享</span>
-            </li>
-            <li>
-              <i class="iconfont icon-icon"></i>
-              <span>回收站</span>
-            </li>
-            <li>
-              <i class="iconfont icon-shezhi"></i>
-              <span>设置</span>
-            </li>
-          </ul>
+          <LeftAside />
         </el-aside>
         <el-container class="buttom-right">
           <el-aside class="buttom-right-left" width="150px">
@@ -143,6 +119,8 @@
 <script setup>
   import axios from 'axios'
   import SparkMD5 from 'spark-md5';
+  import Header from './components/header.vue'
+  import LeftAside from './components/leftaside.vue'
   import { onMounted, ref } from 'vue'
   import {Check,Close} from '@element-plus/icons-vue'
   import { FileList, MovieFileList, uploadFile, checkfile, uploadchuckfile, merge, CheckChunk, DeleteFile, createFolder } from '@/apis/file'
@@ -358,26 +336,10 @@
             justify-content: space-between;
             box-shadow: 1px 1px 5px #888888;
             align-items: center;
-            .left {
-              font-size: 18px;
-            }
-            .right {
-              font-size: 18px;
-            }
         }
         .buttom {
             .buttom-left {
               box-shadow: 1px 1px 5px #888888;
-                ul {
-                    li{
-                        margin-top: 18px;
-                        list-style-type:none;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        justify-content: center;
-                    }
-                }
             }
             .buttom-right {
                 .buttom-right-left {
