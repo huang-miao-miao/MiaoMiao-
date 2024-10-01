@@ -286,6 +286,7 @@
     const res = await FileList({ userId, fileId })
     tableData.value = res.data
   }
+  //获取指定类型文件列表
   const getMovieFileList = async (filecategory) => {
     if(filecategory===0){
       getFileList()
