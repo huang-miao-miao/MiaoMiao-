@@ -10,35 +10,9 @@
         </el-aside>
         <el-container class="buttom-right">
           <el-aside class="buttom-right-left" width="150px">
-            <ul>
-            <li @click="getFileList">
-              <i class="iconfont icon-all"></i>
-              <span>全部</span>
-            </li>
-            <li @click="getMovieFileList(1)">
-              <i class="iconfont icon-shipin"></i>
-              <span>视频</span>
-            </li>
-            <li @click="getMovieFileList(2)">
-              <i class="iconfont icon-yinpin"></i>
-              <span>音频</span>
-            </li>
-            <li @click="getMovieFileList(3)">
-              <i class="iconfont icon-tupian"></i>
-              <span>图片</span>
-            </li>
-            <li @click="getMovieFileList(4)">
-              <i class="iconfont icon-wenjian"></i>
-              <span>文档</span>
-            </li>
-            <li @click="getMovieFileList(5)">
-              <i class="iconfont icon-qita"></i>
-              <span>其他</span>
-            </li>
-          </ul>
+            <RightAside @get-anther-list = "getMovieFileList" />
           </el-aside>
           <el-container class="buttom-right-right">
-            <!-- action="http://localhost:8080/file/upload" -->
             <el-header height="80px">
               <div class="header-button" >
                 <el-upload
@@ -121,6 +95,7 @@
   import SparkMD5 from 'spark-md5';
   import Header from './components/header.vue'
   import LeftAside from './components/leftaside.vue'
+  import RightAside from './components/rightaside.vue'
   import { onMounted, ref } from 'vue'
   import {Check,Close} from '@element-plus/icons-vue'
   import { FileList, MovieFileList, uploadFile, checkfile, uploadchuckfile, merge, CheckChunk, DeleteFile, createFolder } from '@/apis/file'
@@ -312,6 +287,10 @@
     tableData.value = res.data
   }
   const getMovieFileList = async (filecategory) => {
+    if(filecategory===0){
+      getFileList()
+      return
+    }
     test.value.fileCategory = filecategory
     const { userId, fileId ,fileCategory } = test.value
     const res = await MovieFileList({ userId, fileId, fileCategory })
@@ -344,17 +323,6 @@
             .buttom-right {
                 .buttom-right-left {
                   border-right: 1px solid;
-                    li {
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        margin-top: 18px;
-                        height: 18px;
-                        cursor: pointer;
-                        i{
-                            margin-right: 18px;
-                        }
-                    }
                 }
                 .header-button {
                   margin-top: 18px;
