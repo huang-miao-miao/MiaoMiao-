@@ -19,17 +19,11 @@
         批量移动
     </el-button>
     <el-input
-        v-model="input1"
         style="width: 240px;margin-left: 18px;"
         placeholder="请输入文件名搜索"
         class="fileselect"
     />
     <i @click="getFileList" class="iconfont icon-shuaxin" style="margin-left: 18px;cursor: pointer;"></i>
-    </div>
-    <div class="breadcrumb">
-    <el-breadcrumb  separator="/">
-        <el-breadcrumb-item v-for="(item,index) in breadcrumblist" style="cursor:pointer;" @click="breadcrumbclick(item,index)" :key="item.id">{{item.filename}}</el-breadcrumb-item>
-    </el-breadcrumb>
     </div>
 </template>
 

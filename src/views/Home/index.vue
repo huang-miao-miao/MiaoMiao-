@@ -26,7 +26,7 @@
               </div>
             </el-header>
             <el-main class="table-main">
-            <el-table @cell-mouse-leave="mouseLeave" @cell-mouse-enter="mouseEnter" class="table" @select="selectL" :data="tableData" style="width: 99%">
+            <el-table @cell-mouse-leave="mouseLeave" @cell-mouse-enter="mouseEnter" class="table" @select-all= "alldeletefile" @select= "selectL" :data="tableData" style="width: 99%">
                 <el-table-column type="selection" />
                 <el-table-column class="name" width="500px" label="文件名">
                   <template #default="scope">
@@ -54,11 +54,6 @@
             </el-table>
             <div v-if="showtransform" class="transform">
               <Progress />
-              <!-- <div class="title">上传任务</div>
-              <div v-for="item in loadprogress" :key="item.id" class="itemprogress">
-                <div class="itemprogresstitle">{{ item.filename }}</div>
-                <el-progress :percentage= "item.progress" />
-              </div> -->
             </div>
           </el-main>
           </el-container>
@@ -69,7 +64,7 @@
 </template>
 
 <script setup>
-  import axios from 'axios'
+  import axios, { all } from 'axios'
   import SparkMD5 from 'spark-md5';
   import Header from './components/header.vue'
   import LeftAside from './components/leftaside.vue'
@@ -83,14 +78,11 @@
   import { parse } from 'vue/compiler-sfc';
   import { useUserStore } from '@/stores/user';
   import { useFileStore } from '@/stores/file';
-  // import { useProgressStore } from '@/stores/loadprogress'
   const tableData = ref([])
   const userStore = useUserStore()
   const fileStore = useFileStore()
   const { userid } = storeToRefs(userStore)
   const { fileid } = storeToRefs(fileStore)
-  // const ProgressStore = useProgressStore()
-  // const {loadprogress} = storeToRefs(ProgressStore)
   const test = ref({
     userId: userid,
     fileId: fileid
@@ -104,7 +96,6 @@
   const pid = ref('1')
   const deletelist = ref([])
   const showtransform = ref(false)
-  // const loadProgress = ref([])
   const breadcrumblist = ref([{'fileid':'1','filename':'主页'}])
   const chunksize = 10 * 1024 * 1024
   //点击文件名称
@@ -145,6 +136,18 @@
     test.value.fileId = item.fileid
     await getFileList()
   }
+  const alldeletefile = (selection) => {
+    console.log(selection)
+    if(selection.length===0){
+      deletelist.value.length=0
+      return
+    }
+    deletelist.value.length=0
+    for(var i =0;i<selection.length;i++){
+      const { fileId } = selection[i]
+      deletelist.value.push(fileId)
+    }
+  }
   //删除文件
   const deletefile = async () => {
     if(deletelist.value.length===0){
@@ -155,7 +158,7 @@
     deletelist.value = ref([])
     getFileList()
   }
-  //选择表格文件
+  //单选表格文件
   const selectL = (selection, row) => {
     if(!deletelist.value.includes(row.fileId)){
       deletelist.value.push(row.fileId)
@@ -165,7 +168,6 @@
     if (index !== -1) {
       deletelist.value.splice(index, 1);
     }
-    // deletelist.value = deletelist.value.filter(fileId1=>fileId1!==row.fileId)
   }
   //控制进度条出现
   const changeshowtransform = () => {
