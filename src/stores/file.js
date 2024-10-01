@@ -10,4 +10,7 @@ export const useFileStore = defineStore('file', () => {
     fileid,
     setfileid
   }
+}, 
+{
+persist: true,
 })

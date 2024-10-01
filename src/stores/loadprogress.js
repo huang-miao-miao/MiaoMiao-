@@ -5,8 +5,16 @@ export const useProgressStore = defineStore('progress',()=>{
     const addelement = (element) => {
         loadprogress.value.push(element)
     }
+    const setprogress = (uid,progress) => {
+        const index = loadprogress.value.findIndex((element) => element.uid===uid)
+        loadprogress.value[index].progress = progress
+    }
     return {
         loadprogress,
-        addelement
+        addelement,
+        setprogress
     }
+},
+{
+persist: true,
 })

@@ -44,7 +44,7 @@
   const userStore = useUserStore()
   const fileStore = useFileStore()
   const ProgressStore = useProgressStore()
-  const loadProgress = storeToRefs(ProgressStore)
+  const {loadProgress} = storeToRefs(ProgressStore)
   const { userid } = storeToRefs(userStore)
   const { fileid } = storeToRefs(fileStore)
   const chunksize = 10 * 1024 * 1024
@@ -90,14 +90,15 @@
         formData.append('pid',test.value.fileId)
         formData.append('fileMd5',fileMd5)
         const itemprogress = {'uid':UploadFile.uid,'filename':UploadFile.name,'progress':0}
-        loadProgress.value.push(itemprogress)
+        ProgressStore.addelement(itemprogress)
         await axios.post('http://localhost:8080/file/upload',formData,{
             headers: {
             "Content-Type": "multipart/form-data",
             },
             onUploadProgress: (ProgressEvent) => {
-            const index = loadProgress.value.findIndex((element) => element.uid===UploadFile.uid)
-            loadProgress.value[index].progress = Math.round((ProgressEvent.loaded/ProgressEvent.total)*100)
+            ProgressStore.setprogress(UploadFile.uid,Math.round((ProgressEvent.loaded/ProgressEvent.total)*100))
+            // const index = loadProgress.value.findIndex((element) => element.uid===UploadFile.uid)
+            // loadProgress.value[index].progress = Math.round((ProgressEvent.loaded/ProgressEvent.total)*100)
             }
         }).then(response => {  
             console.log('File uploaded successfully');  
@@ -108,7 +109,7 @@
         //计算分片数量
         const chunkCount = Math.ceil(fileSize / chunksize)
         const itemprogress = {'uid':UploadFile.uid,'filename':UploadFile.name,'progress':0}
-        loadProgress.value.push(itemprogress)
+        ProgressStore.addelement(itemprogress)
         for (var i = 0; i < chunkCount; i++) {
             //检查每一片分片是否已上传，若已上传则不在上传，实现断点传续
             const checkchunkdata = new FormData()
@@ -130,8 +131,9 @@
             formdata.append('file', _chunkFile)
             // 通过await实现顺序上传
             await uploadchuckfile(formdata)
-            const index = loadProgress.value.findIndex((element) => element.uid===UploadFile.uid)
-            loadProgress.value[index].progress = Math.floor(((i+1)/chunkCount)*100)
+            ProgressStore.setprogress(UploadFile.uid,Math.floor(((i+1)/chunkCount)*100))
+            // const index = loadProgress.value.findIndex((element) => element.uid===UploadFile.uid)
+            // loadProgress.value[index].progress = Math.floor(((i+1)/chunkCount)*100)
         }
         //分块上传完毕，合并分块
         const formdata = new FormData()

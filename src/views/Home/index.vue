@@ -54,9 +54,9 @@
             </el-table>
             <div v-if="showtransform" class="transform">
               <div class="title">上传任务</div>
-              <div v-for="item in loadProgress" :key="item.id" class="itemprogress">
-                <div class="itemprogresstitle">{{item.filename}}</div>
-                <el-progress :percentage="item.progress" />
+              <div v-for="item in loadprogress" :key="item.id" class="itemprogress">
+                <div class="itemprogresstitle">{{ item.filename }}</div>
+                <el-progress :percentage= "item.progress" />
               </div>
             </div>
           </el-main>
@@ -81,11 +81,14 @@
   import { parse } from 'vue/compiler-sfc';
   import { useUserStore } from '@/stores/user';
   import { useFileStore } from '@/stores/file';
+  import { useProgressStore } from '@/stores/loadprogress'
   const tableData = ref([])
   const userStore = useUserStore()
   const fileStore = useFileStore()
   const { userid } = storeToRefs(userStore)
   const { fileid } = storeToRefs(fileStore)
+  const ProgressStore = useProgressStore()
+  const {loadprogress} = storeToRefs(ProgressStore)
   const test = ref({
     userId: userid,
     fileId: fileid
@@ -99,7 +102,7 @@
   const pid = ref('1')
   const deletelist = ref([])
   const showtransform = ref(false)
-  const loadProgress = ref([])
+  // const loadProgress = ref([])
   const breadcrumblist = ref([{'fileid':'1','filename':'主页'}])
   const chunksize = 10 * 1024 * 1024
   //点击文件名称
