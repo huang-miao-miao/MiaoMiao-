@@ -96,7 +96,7 @@
           const itemprogress = {'uid':UploadFile.uid,'filename':UploadFile.name,'progress':0,'pause':false}
           ProgressStore.addelement(itemprogress)
         }
-        await instance.post('http://localhost:8080/file/upload',formData,{
+        await instance.post('http://localhost:8081/file/upload',formData,{
             headers: {
             "Content-Type": "multipart/form-data",
             },

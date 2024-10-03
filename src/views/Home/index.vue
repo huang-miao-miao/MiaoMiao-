@@ -80,6 +80,8 @@
   import { useUserStore } from '@/stores/user';
   import { useFileStore } from '@/stores/file';
   import { useOptionStore } from '@/stores/option';
+  import { useRouter } from 'vue-router';
+  const router = useRouter();
   const tableData = ref([])
   const userStore = useUserStore()
   const fileStore = useFileStore()
@@ -101,11 +103,19 @@
   const deletelist = ref([])
   const showtransform = ref(false)
   const tableheaders = ref(null)
+  const officeUrl = ref('')
+  const showitem = ref(true)
   const breadcrumblist = ref([{'fileid':'1','filename':'主页'}])
   const chunksize = 10 * 1024 * 1024
+  // docx作为参数通过父组件传参
+  const renderedHandler=()=>{
+    console.log("渲染完成")
+  }
+  const errorHandler=()=>{
+    console.log("渲染失败")
+  }
   const reupload = (uid) => {
     const index = OptionStore.getelementindex(uid)
-    // tableheaders.value.play()
     tableheaders.value.handleRequest(options.value[index].option)
   }
   const downloadFile = async (fileId) => {
@@ -114,12 +124,19 @@
     window.open(res.data)
   }
   //点击文件名称
-  const selectitem = (row) => {
+  const selectitem = async (row) => {
     if(row.folderType===0){
       breadcrumblist.value.push({'fileid':row.fileId,'filename':row.fileName})
       test.value.fileId = row.fileId;
       getFileList()
+      return
     }
+    const res = await downloadfile(row.fileId)
+    let routeUrl = router.resolve({
+				      path: "/preview",
+              query: {"url":res.data}
+				 });
+		window.open(routeUrl.href, '_blank');
   }
   //新建文件夹步骤二（向后端发请求新建文件夹）
   const ensurecreate = async () => {
@@ -270,4 +287,7 @@
         }
     }
   }
+  // .previewOffice{
+  //   // hspace="-100" vspace="-150"
+  // }
 </style>
