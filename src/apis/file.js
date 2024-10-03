@@ -95,3 +95,12 @@ export const createFolder = ({userId,fileId,fileName}) => {
         }
     })
 }
+export const downloadfile = (fileId) => {
+    return instance({
+        url: '/file/download',
+        method: 'post',
+        params: {
+            fileId
+        }
+    })
+}

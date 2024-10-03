@@ -18,6 +18,7 @@
               @create-folder= "changecreateFolder" 
               @delete-file= "deletefile"
               @get-filelist= "getFileList"
+              ref="tableheaders"
                />
               <div class="breadcrumb">
                 <el-breadcrumb  separator="/">
@@ -41,7 +42,7 @@
                       </div>
                       <div v-show="showClickIcon===true&&scope.row.fileId==rowid" class="item-button">
                           <span>分享</span>
-                          <span>下载</span>
+                          <span style="cursor:pointer;" @click="downloadFile(scope.row.fileId)">下载</span>
                           <span>删除</span>
                           <span>重命名</span>
                           <span>移动</span>
@@ -53,7 +54,7 @@
                 <el-table-column property="fileSize" label="文件大小"/>
             </el-table>
             <div v-if="showtransform" class="transform">
-              <Progress />
+              <Progress @restart-upload= "reupload" />
             </div>
           </el-main>
           </el-container>
@@ -74,13 +75,16 @@
   import { onMounted, ref } from 'vue'
   import { storeToRefs } from 'pinia'
   import {Check,Close} from '@element-plus/icons-vue'
-  import { FileList, MovieFileList, uploadFile, checkfile, uploadchuckfile, merge, CheckChunk, DeleteFile, createFolder } from '@/apis/file'
+  import { FileList, MovieFileList, uploadFile, checkfile, uploadchuckfile, merge, CheckChunk, DeleteFile, createFolder, downloadfile } from '@/apis/file'
   import { parse } from 'vue/compiler-sfc';
   import { useUserStore } from '@/stores/user';
   import { useFileStore } from '@/stores/file';
+  import { useOptionStore } from '@/stores/option';
   const tableData = ref([])
   const userStore = useUserStore()
   const fileStore = useFileStore()
+  const OptionStore = useOptionStore()
+  const {options} = storeToRefs(OptionStore)
   const { userid } = storeToRefs(userStore)
   const { fileid } = storeToRefs(fileStore)
   const test = ref({
@@ -96,8 +100,19 @@
   const pid = ref('1')
   const deletelist = ref([])
   const showtransform = ref(false)
+  const tableheaders = ref(null)
   const breadcrumblist = ref([{'fileid':'1','filename':'主页'}])
   const chunksize = 10 * 1024 * 1024
+  const reupload = (uid) => {
+    const index = OptionStore.getelementindex(uid)
+    // tableheaders.value.play()
+    tableheaders.value.handleRequest(options.value[index].option)
+  }
+  const downloadFile = async (fileId) => {
+    console.log(fileId)
+    const res = await downloadfile(fileId)
+    window.open(res.data)
+  }
   //点击文件名称
   const selectitem = (row) => {
     if(row.folderType===0){
@@ -190,6 +205,7 @@
     const res = await MovieFileList({ userId, fileId, fileCategory })
     tableData.value = res.data
   }
+  
   onMounted(()=>{
     getFileList()
   })
@@ -241,7 +257,7 @@
                   right: 0;
                   width: 500px;
                   height: 500px;
-                  // background-color: skyblue;
+                  background-color: skyblue;
                   border: 1px solid;
                   box-shadow: 1px 1px 5px #888888;
                   .title{

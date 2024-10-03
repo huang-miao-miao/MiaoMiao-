@@ -29,15 +29,19 @@
 
 <script setup>
   import { ref } from 'vue'
+  import instance from '@/utils/http'
   import SparkMD5 from 'spark-md5';
   import { FileList, MovieFileList, uploadFile, checkfile, uploadchuckfile, merge, CheckChunk, DeleteFile, createFolder } from '@/apis/file'
   import { useProgressStore } from '@/stores/loadprogress'
   import { useUserStore } from '@/stores/user';
   import { useFileStore } from '@/stores/file';
+  import { useOptionStore } from '@/stores/option';
   import { storeToRefs } from 'pinia'
   const userStore = useUserStore()
   const fileStore = useFileStore()
   const ProgressStore = useProgressStore()
+  const OptionStore = useOptionStore()
+  const {options} = storeToRefs(OptionStore)
   const {loadProgress} = storeToRefs(ProgressStore)
   const { userid } = storeToRefs(userStore)
   const { fileid } = storeToRefs(fileStore)
@@ -50,6 +54,9 @@
   const changecreateFolder = () => {
     emit('create-folder')
   }
+  const play = () => {
+    console.log('成功调用')
+  }
   const deletefile = () => {
     emit('delete-file')
   }
@@ -58,15 +65,16 @@
   }
   //上传文件
   const handleRequest = async (options) => {
-    console.log(options)
-    console.log(options.file)
     //计算文件的md5值
     const UploadFile = options.file
     const fileMd5 = await getUploadFileMD5(UploadFile);
+    if(OptionStore.getelementindex(UploadFile.uid)===-1){
+      OptionStore.addelement({'uid':UploadFile.uid,'option':options})
+    }
     //计算文件大小
     const fileSize = UploadFile.size
     //检查文件是否存在
-    const checkfiledata = new FormData()
+    const checkfiledata = new FormData() 
     checkfiledata.append('fileMd5', fileMd5)
     checkfiledata.append('FileSize', fileSize)
     checkfiledata.append('Filename', UploadFile.name)
@@ -83,16 +91,17 @@
         formData.append('file', UploadFile)
         formData.append('pid',test.value.fileId)
         formData.append('fileMd5',fileMd5)
-        const itemprogress = {'uid':UploadFile.uid,'filename':UploadFile.name,'progress':0}
-        ProgressStore.addelement(itemprogress)
-        await axios.post('http://localhost:8080/file/upload',formData,{
+        if(ProgressStore.getelement(UploadFile.uid)===-1){
+          console.log('添加progress')
+          const itemprogress = {'uid':UploadFile.uid,'filename':UploadFile.name,'progress':0,'pause':false}
+          ProgressStore.addelement(itemprogress)
+        }
+        await instance.post('http://localhost:8080/file/upload',formData,{
             headers: {
             "Content-Type": "multipart/form-data",
             },
             onUploadProgress: (ProgressEvent) => {
             ProgressStore.setprogress(UploadFile.uid,Math.round((ProgressEvent.loaded/ProgressEvent.total)*100))
-            // const index = loadProgress.value.findIndex((element) => element.uid===UploadFile.uid)
-            // loadProgress.value[index].progress = Math.round((ProgressEvent.loaded/ProgressEvent.total)*100)
             }
         }).then(response => {  
             console.log('File uploaded successfully');  
@@ -102,17 +111,23 @@
         //大于10M进行分片上传
         //计算分片数量
         const chunkCount = Math.ceil(fileSize / chunksize)
-        const itemprogress = {'uid':UploadFile.uid,'filename':UploadFile.name,'progress':0}
-        ProgressStore.addelement(itemprogress)
+        if(ProgressStore.getelement(UploadFile.uid)===-1){
+          const itemprogress = {'uid':UploadFile.uid,'filename':UploadFile.name,'progress':0,'pause':false}
+          ProgressStore.addelement(itemprogress)
+        }
         for (var i = 0; i < chunkCount; i++) {
+            if(ProgressStore.getfilepuse(UploadFile.uid)===true){
+              return
+            }
             //检查每一片分片是否已上传，若已上传则不在上传，实现断点传续
             const checkchunkdata = new FormData()
             checkchunkdata.append("fileMd5",fileMd5)
             checkchunkdata.append("chunk",i)
             const checkchunk = await CheckChunk(checkchunkdata);
-            if(checkchunk==="分块已存在"){
-            continue
+            if(checkchunk.data==="分块已存在"){
+              continue
             }
+            console.log(i)
             //分片开始位置
             let start = i * chunksize
             //分片结束位置
@@ -126,8 +141,6 @@
             // 通过await实现顺序上传
             await uploadchuckfile(formdata)
             ProgressStore.setprogress(UploadFile.uid,Math.floor(((i+1)/chunkCount)*100))
-            // const index = loadProgress.value.findIndex((element) => element.uid===UploadFile.uid)
-            // loadProgress.value[index].progress = Math.floor(((i+1)/chunkCount)*100)
         }
         //分块上传完毕，合并分块
         const formdata = new FormData()
@@ -157,6 +170,10 @@
         fileReader.readAsArrayBuffer(file);
       });
   }
+  defineExpose({
+  	  handleRequest,
+      play
+	})
 </script>
 
 <style lang="scss" scoped>
