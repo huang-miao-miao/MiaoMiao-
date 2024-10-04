@@ -132,9 +132,33 @@
       return
     }
     const res = await downloadfile(row.fileId)
+    const index= row.fileName.lastIndexOf(".");
+    //获取后缀
+    const ext = row.fileName.substr(index+1);
+    if(ext==='docx'){
+      let routeUrl = router.resolve({
+				      path: "/preview",
+              query: {"url":res.data,'category':6}
+				 });
+      window.open(routeUrl.href, '_blank');
+    }
+    if(ext==='pdf'){
+      let routeUrl = router.resolve({
+				      path: "/preview",
+              query: {"url":res.data,'category':7}
+				 });
+      window.open(routeUrl.href, '_blank');
+    }
+    if(ext==='excel'){
+      let routeUrl = router.resolve({
+				      path: "/preview",
+              query: {"url":res.data,'category':8}
+				 });
+      window.open(routeUrl.href, '_blank');
+    }
     let routeUrl = router.resolve({
 				      path: "/preview",
-              query: {"url":res.data}
+              query: {"url":res.data,'category':row.fileCategory}
 				 });
 		window.open(routeUrl.href, '_blank');
   }

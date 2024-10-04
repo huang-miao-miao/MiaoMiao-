@@ -1,20 +1,29 @@
 <template>
   <vue-office-docx
-        :src="docx"
+        :src="fileUrl"
+        v-if= 'filecategory==="6"'
         style="height: 100vh;"
         @rendered= "renderedHandler"
         @error= "errorHandler"
     />
-    <!-- <vue-office-pdf
+    <vue-office-pdf
         :src="fileUrl"
-        style="height: 100vh;overflow: auto"
+        v-if= 'filecategory==="7"'
+        style="height: 100vh;"
         @rendered="rendered"
         @error="errorHandler"
-        :options="{
-          width: '100%',
-          overflow: 'auto'
-        }"
-      /> -->
+      />
+      <vue-office-excel
+        :src="fileUrl"
+        v-if= 'filecategory==="8"'
+        style="height: 100vh;"
+        @rendered="rendered"
+        @error="errorHandler"
+      />
+      <img v-if='filecategory==="3"' :src="fileUrl" />
+      <video v-if='filecategory==="1"' controls width="250">
+        <source :src="fileUrl" type="video/webm" />
+      </video>
 </template>
 
 <script setup>
@@ -29,9 +38,8 @@ import '@vue-office/excel/lib/index.css';
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-
-const docx=ref('') //设置文档网络地址，可以是相对地址
-const fileUrl = ref('')
+const filecategory = ref(6) 
+const fileUrl = ref('')  //设置文档网络地址，可以是相对地址
 // docx作为参数通过父组件传参
 const renderedHandler=()=>{
   console.log("渲染完成")
@@ -40,8 +48,8 @@ const errorHandler=()=>{
   console.log("渲染失败")
 }
 onMounted(() => {
-  console.log(route)
-  docx.value = route.query.url
+  fileUrl.value = route.query.url
+  filecategory.value = route.query.category
 })
 </script>
 
