@@ -231,8 +231,8 @@
   }
   //获取文件列表
   const getFileList = async () => {
-    const { userId, fileId } = test.value
-    const res = await FileList({ userId, fileId })
+    const { fileId } = test.value
+    const res = await FileList({ fileId })
     tableData.value = res.data
   }
   //获取指定类型文件列表

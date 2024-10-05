@@ -79,7 +79,7 @@
     checkfiledata.append('FileSize', fileSize)
     checkfiledata.append('Filename', UploadFile.name)
     checkfiledata.append('pid',test.value.fileId)
-    checkfiledata.append('userId',test.value.userId)
+    // checkfiledata.append('userId',test.value.userId)
     const chekFile = await checkfile(checkfiledata);
     //文件已上传，返回，实现秒传
     if(chekFile.data==="文件已上传"){

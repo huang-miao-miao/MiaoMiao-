@@ -1,6 +1,6 @@
 import axios from 'axios'
 // 创建axios实例
- 
+import { useUserStore } from '@/stores/user';
 const instance = axios.create({
   //基本url
   baseURL: 'http://localhost:8081',
@@ -10,6 +10,10 @@ const instance = axios.create({
  
 // axios请求拦截器
 instance.interceptors.request.use(config => {
+  const userStore = useUserStore()
+  console.log(userStore.userid)
+  config.headers['token'] = userStore.userid
+  config.headers["Access-Control-Allow-Origin"] = "*"
   return config
 }, e => Promise.reject(e))
  

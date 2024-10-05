@@ -1,12 +1,11 @@
 import instance from '@/utils/http'
 import { ref } from 'vue'
 import qs from 'qs'
-export const FileList = ({ userId, fileId }) => {
+export const FileList = ({ fileId }) => {
     return instance({
         url: '/file/FileList',
         method: 'POST',
         data: {
-            userId,
             fileId
         }
     })
